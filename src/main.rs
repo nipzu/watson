@@ -1,7 +1,7 @@
-mod board;
 mod evaluation;
 mod hashtable;
 mod movegen;
+mod position;
 mod uci;
 
 fn main() {

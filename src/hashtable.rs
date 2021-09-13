@@ -28,9 +28,9 @@ impl HashTable {
     }
 
     pub fn clear(&mut self) {
-        self.table
-            .iter()
-            .for_each(|a| a.store(EMPTY_TABLE_ENTRY, Ordering::Relaxed));
+        for a in &self.table {
+            a.store(EMPTY_TABLE_ENTRY, Ordering::Relaxed);
+        }
     }
 
     #[allow(clippy::cast_possible_truncation)]
@@ -40,15 +40,16 @@ impl HashTable {
 
         let base_index = low_bits * self.bucket_size;
         for i in 0..self.bucket_size {
-            let elem = self.table[base_index + i].load(Ordering::Relaxed);
-            if (elem as u16) == high_bits {
-                return Some(Evaluation::from_raw((elem >> 16) as i16));
+            let entry = self.table[base_index + i].load(Ordering::Relaxed);
+            if (entry as u16) == high_bits {
+                return Some(Evaluation::from_raw((entry >> 16) as i16));
             }
         }
 
         None
     }
 
+    /// TODO: test `compare_exchange` performance
     #[allow(clippy::cast_possible_truncation)]
     pub fn insert_eval(&self, hash: u64, eval: Evaluation) {
         let low_bits = (hash as usize) & (self.num_buckets - 1);
@@ -57,12 +58,11 @@ impl HashTable {
 
         let base_index = low_bits * self.bucket_size;
         for i in 0..self.bucket_size {
-            let elem = self.table[base_index + i].load(Ordering::Relaxed);
-            #[allow(clippy::invalid_upcast_comparisons)]
-            if ((elem >> 16) as i16) == Evaluation::RESERVED_VALUE {
+            let entry = self.table[base_index + i].load(Ordering::Relaxed);
+            if entry == EMPTY_TABLE_ENTRY {
                 #[allow(clippy::cast_sign_loss)]
-                let new_elem = high_bits | (u32::from(eval.to_raw() as u16) << 16);
-                self.table[base_index + i].store(new_elem, Ordering::Relaxed);
+                let new_entry = high_bits | (u32::from(eval.to_raw() as u16) << 16);
+                self.table[base_index + i].store(new_entry, Ordering::Relaxed);
                 return;
             }
         }

@@ -1,9 +1,5 @@
 use std::fmt;
 
-// leaves space for a mate in 2500
-const MAX_CENTIPAWN_EVALUATION: i16 = 30_000;
-const MIN_CENTIPAWN_EVALUATION: i16 = -MAX_CENTIPAWN_EVALUATION;
-
 /// Wrapper struct for storing the heuristic evaluation of a position.
 ///
 /// The value `Self::RESERVED_VALUE` is reserved and illegal to have as a value in this struct.
@@ -22,6 +18,10 @@ pub struct Evaluation {
 
 impl Evaluation {
     pub const RESERVED_VALUE: i16 = i16::MIN;
+
+    // leaves space for a mate in 2500
+    pub const MAX_CENTIPAWN_EVALUATION: i16 = 30_000;
+    pub const MIN_CENTIPAWN_EVALUATION: i16 = -Self::MAX_CENTIPAWN_EVALUATION;
 
     /// Construct a new Evaluation from a raw `i16` value.
     ///
@@ -44,7 +44,9 @@ impl fmt::Display for Evaluation {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.value {
             Self::RESERVED_VALUE => unreachable!(),
-            MIN_CENTIPAWN_EVALUATION..=MAX_CENTIPAWN_EVALUATION => write!(f, "{}", self.value),
+            Self::MIN_CENTIPAWN_EVALUATION..=Self::MAX_CENTIPAWN_EVALUATION => {
+                write!(f, "{}", self.value)
+            }
             _ => write!(
                 f,
                 "M{}",
