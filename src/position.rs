@@ -24,9 +24,9 @@ impl Position {
     }
 
     // en passant
-    // captured piece
+    // captured piece - kinda done
     // castling rights
-    //
+    // promotion
     pub fn make_move(&mut self, move_to_make: Move) {
         // remove old piece
         // `captured_mask` may be zero, in which case nothing happens.
